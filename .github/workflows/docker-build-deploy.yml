@@ -27,7 +27,7 @@ jobs:
 
       # Copy the built JAR and Dockerfile to the Azure VM
       - name: Copy files to Azure VM
-        uses: appleboy/scp-action@v1
+        uses: appleboy/scp-action@v2
         with:
           host: ${{ secrets.SSH_HOST }}  # Use secrets.SSH_HOST
           port: ${{ secrets.SSH_PORT }}  # Use secrets.SSH_PORT
@@ -38,7 +38,7 @@ jobs:
 
       # Deploy to Azure VM using SSH
       - name: Deploy to Azure VM
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v2
         with:
           host: ${{ secrets.SSH_HOST }}  # Use secrets.SSH_HOST
           port: ${{ secrets.SSH_PORT }}  # Use secrets.SSH_PORT
