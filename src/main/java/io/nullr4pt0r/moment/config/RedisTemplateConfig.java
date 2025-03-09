@@ -30,6 +30,9 @@ public class RedisTemplateConfig {
     @Value("${spring.data.redis.port}")
     private String redisPort;
 
+    @Value("${env}")
+    private String env;
+
     @Bean
     public LettuceConnectionFactory lettuceConnectionFactory() {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
@@ -38,7 +41,9 @@ public class RedisTemplateConfig {
         redisStandaloneConfiguration.setPort(Integer.parseInt(redisPort));
 
         LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
-                .commandTimeout(Duration.ofMillis(300000)).build();
+                .commandTimeout(Duration.ofMillis(300000))
+                .useSsl()
+                .build();
 
         return new LettuceConnectionFactory(redisStandaloneConfiguration, clientConfiguration);
     }
