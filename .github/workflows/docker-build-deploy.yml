@@ -25,25 +25,14 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      # Copy the built JAR and Dockerfile to the Azure VM
-      - name: Copy files to Azure VM
-        uses: appleboy/scp-action@v2
+      # Set up SSH and deploy to Azure VM
+      - name: Set up SSH and deploy
+        uses: LuisEnMarroquin/setup-ssh-action@v2.0.0
         with:
-          host: ${{ secrets.SSH_HOST }}  # Use secrets.SSH_HOST
-          port: ${{ secrets.SSH_PORT }}  # Use secrets.SSH_PORT
-          username: ${{ secrets.SSH_USERNAME }}  # Use secrets.SSH_USERNAME
-          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Use secrets.SSH_PRIVATE_KEY
-          source: "target/*.jar,Dockerfile"
-          target: "/home/${{ secrets.SSH_USERNAME }}/my-springboot-app/"
-
-      # Deploy to Azure VM using SSH
-      - name: Deploy to Azure VM
-        uses: appleboy/ssh-action@v2
-        with:
-          host: ${{ secrets.SSH_HOST }}  # Use secrets.SSH_HOST
-          port: ${{ secrets.SSH_PORT }}  # Use secrets.SSH_PORT
-          username: ${{ secrets.SSH_USERNAME }}  # Use secrets.SSH_USERNAME
-          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Use secrets.SSH_PRIVATE_KEY
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USERNAME }}
+          private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             # Install Docker
             sudo apt-get update
@@ -56,7 +45,13 @@ jobs:
             sudo systemctl enable docker
 
             # Navigate to the app directory
+            mkdir -p /home/${{ secrets.SSH_USERNAME }}/my-springboot-app
             cd /home/${{ secrets.SSH_USERNAME }}/my-springboot-app
+
+            # Copy the built JAR and Dockerfile to the Azure VM
+            echo "Copying files to Azure VM..."
+            scp -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:target/*.jar .
+            scp -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:Dockerfile .
 
             # Stop and remove the existing container (if any)
             docker stop my-springboot-app || true
@@ -69,7 +64,7 @@ jobs:
             docker run -d \
               --name my-springboot-app \
               -p 9292:9292 \
-              -e MONGO_CONNECTION=${{ secrets.MONGO_CONNECTION }} \  # Use secrets.MONGO_CONNECTION
-              -e REDIS_HOST=${{ secrets.REDIS_HOST }} \  # Use secrets.REDIS_HOST
-              -e REDIS_KEY=${{ secrets.REDIS_KEY }} \  # Use secrets.REDIS_KEY
+              -e MONGO_CONNECTION=${{ secrets.MONGO_CONNECTION }} \
+              -e REDIS_HOST=${{ secrets.REDIS_HOST }} \
+              -e REDIS_KEY=${{ secrets.REDIS_KEY }} \
               my-springboot-app
