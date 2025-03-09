@@ -25,39 +25,42 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      # Set up SSH and deploy to Azure VM
-      - name: Set up SSH and deploy
+      # Set up SSH
+      - name: Set up SSH
         uses: LuisEnMarroquin/setup-ssh-action@v2.0.0
         with:
           ORIGIN: ${{ github.workspace }}  # Source of the files
           SSHKEY: ${{ secrets.SSH_PRIVATE_KEY }}  # SSH private key
           PORT: ${{ secrets.SSH_PORT }}  # SSH port
           USER: ${{ secrets.SSH_USERNAME }}  # SSH username
-          NAME: Deploy to Azure VM  # Optional name for the action
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}  # Pass the SSH host as an environment variable
-        script: |
-          # Navigate to the app directory
-          mkdir -p /home/${{ secrets.SSH_USERNAME }}/my-springboot-app
-          cd /home/${{ secrets.SSH_USERNAME }}/my-springboot-app
+          NAME: Set up SSH  # Optional name for the action
 
-          # Copy the built JAR and Dockerfile to the Azure VM
-          echo "Copying files to Azure VM..."
-          scp -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@$SSH_HOST:target/*.jar .
-          scp -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@$SSH_HOST:Dockerfile .
+      # Copy files to the Azure VM
+      - name: Copy files to Azure VM
+        run: |
+          scp -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa target/*.jar ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USERNAME }}/my-springboot-app/
+          scp -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa Dockerfile ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USERNAME }}/my-springboot-app/
 
-          # Stop and remove the existing container (if any)
-          docker stop my-springboot-app || true
-          docker rm my-springboot-app || true
+      # Deploy to Azure VM
+      - name: Deploy to Azure VM
+        run: |
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'EOF'
+            # Navigate to the app directory
+            cd /home/${{ secrets.SSH_USERNAME }}/my-springboot-app
 
-          # Build the Docker image
-          docker build -t my-springboot-app .
+            # Stop and remove the existing container (if any)
+            docker stop my-springboot-app || true
+            docker rm my-springboot-app || true
 
-          # Run the new container with environment variables
-          docker run -d \
-            --name my-springboot-app \
-            -p 9292:9292 \
-            -e MONGO_CONNECTION=${{ secrets.MONGO_CONNECTION }} \
-            -e REDIS_HOST=${{ secrets.REDIS_HOST }} \
-            -e REDIS_KEY=${{ secrets.REDIS_KEY }} \
-            my-springboot-app
+            # Build the Docker image
+            docker build -t my-springboot-app .
+
+            # Run the new container with environment variables
+            docker run -d \
+              --name my-springboot-app \
+              -p 9292:9292 \
+              -e MONGO_CONNECTION=${{ secrets.MONGO_CONNECTION }} \
+              -e REDIS_HOST=${{ secrets.REDIS_HOST }} \
+              -e REDIS_KEY=${{ secrets.REDIS_KEY }} \
+              my-springboot-app
+          EOF
