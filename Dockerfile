@@ -1,22 +1,19 @@
 # Stage 1: Build the application
-FROM openjdk:17-jdk-slim AS builder
+FROM eclipse-temurin:17-jdk-alpine AS builder
 LABEL authors="raguvaran"
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the source code
-COPY . .
+# Copy only the necessary files for building (pom.xml and src/)
+COPY pom.xml .
+COPY src ./src
 
-# Install Maven and build the application
-RUN apt-get update && \
-    apt-get install -y maven && \
-    mvn clean install -DskipTests
-
-RUN ls -l /app/target
+# Build the application using Maven
+RUN mvn clean install -DskipTests
 
 # Stage 2: Create the final image
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jre-alpine
 LABEL authors="raguvaran"
 
 # Set the working directory
