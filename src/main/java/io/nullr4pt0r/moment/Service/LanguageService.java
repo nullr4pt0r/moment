@@ -8,7 +8,7 @@ import java.util.Set;
 public class LanguageService {
 
     private Set<String> languageSet = Set.of("english","tamil","hindi","french","dutch"
-    ,"portuguese","malayalam","telugu");
+    ,"portuguese","malayalam","telugu","japanese","arabic","mandarin","korean");
 
     public boolean isValidLanguage(String lang){
         return languageSet.contains(lang);
