@@ -54,6 +54,12 @@ jobs:
           chmod 600 private_key.pem
           ssh-keygen -l -f private_key.pem
 
+      - name: Test SSH Connection
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} echo "SSH connection successful!"
+
       - name: Deploy to Azure VM
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -61,6 +67,17 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Debug: Print the docker run command
+            echo "Running command:"
+            echo "docker run -d \
+              --env MONGO_CONNECTION=\"${{ secrets.MONGO_CONNECTION }}\" \
+              --env REDIS_HOST=\"${{ secrets.REDIS_HOST }}\" \
+              --env REDIS_KEY=\"${{ secrets.REDIS_KEY }}\" \
+              --env REDIS_PORT=\"${{ secrets.REDIS_PORT }}\" \
+              -p 9292:9292 \
+              --name moment-app \
+              ghcr.io/${{ secrets.GHCR_USERNAME }}/moment-app:latest"
+
             # Stop and remove existing container
             docker stop moment-app || true
             docker rm moment-app || true
@@ -72,8 +89,11 @@ jobs:
             docker pull ghcr.io/${{ secrets.GHCR_USERNAME }}/moment-app:latest
 
             # Run new container with environment variables
-            docker run -d --env MONGO_CONNECTION=${{ secrets.MONGO_CONNECTION }} \
-                         --env REDIS_HOST=${{ secrets.REDIS_HOST }} \
-                         --env REDIS_KEY=${{ secrets.REDIS_KEY }} \
-                         --env REDIS_PORT=${{ secrets.REDIS_PORT }} \
-                         -p 9292:9292 --name moment-app ghcr.io/${{ secrets.GHCR_USERNAME }}/moment-app:latest
+            docker run -d \
+              --env MONGO_CONNECTION="${{ secrets.MONGO_CONNECTION }}" \
+              --env REDIS_HOST="${{ secrets.REDIS_HOST }}" \
+              --env REDIS_KEY="${{ secrets.REDIS_KEY }}" \
+              --env REDIS_PORT="${{ secrets.REDIS_PORT }}" \
+              -p 9292:9292 \
+              --name moment-app \
+              ghcr.io/${{ secrets.GHCR_USERNAME }}/moment-app:latest
