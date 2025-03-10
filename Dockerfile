@@ -2,6 +2,8 @@
 FROM eclipse-temurin:17-jdk-alpine AS builder
 LABEL authors="raguvaran"
 
+RUN apk add --no-cache maven
+
 # Set the working directory
 WORKDIR /app
 
