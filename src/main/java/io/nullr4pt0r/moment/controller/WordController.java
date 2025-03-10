@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/words")
 @RequiredArgsConstructor
+@CrossOrigin("https://moments-word-rain.vercel.app")
 public class WordController {
 
     @Autowired
