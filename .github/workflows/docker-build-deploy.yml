@@ -88,6 +88,11 @@ jobs:
             # Pull the latest image from GHCR
             docker pull ghcr.io/${{ secrets.GHCR_USERNAME }}/moment-app:latest
 
+            echo "MONGO_CONNECTION: ${{ secrets.MONGO_CONNECTION }}"
+            echo "REDIS_HOST: ${{ secrets.REDIS_HOST }}"
+            echo "REDIS_KEY: ${{ secrets.REDIS_KEY }}"
+            echo "REDIS_PORT: ${{ secrets.REDIS_PORT }}"
+
             # Run new container with environment variables
             docker run -d \
               --env MONGO_CONNECTION="${{ secrets.MONGO_CONNECTION }}" \
