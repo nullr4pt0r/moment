@@ -48,6 +48,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Display SSH Key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+          ssh-keygen -l -f private_key.pem
+
       - name: Deploy to Azure VM
         uses: appleboy/ssh-action@v0.1.6
         with:
