@@ -35,6 +35,7 @@ public class RedisTemplateConfig {
 
     @Bean
     public LettuceConnectionFactory lettuceConnectionFactory() {
+        log.info("Configuring Redis connection: host={}, port={}, env={}, password={}", redisHostname, redisPort, env, redisPassword);
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
         redisStandaloneConfiguration.setHostName(redisHostname);
         redisStandaloneConfiguration.setPassword(redisPassword);
@@ -44,7 +45,7 @@ public class RedisTemplateConfig {
                 .commandTimeout(Duration.ofMillis(300000))
                 .useSsl()
                 .build();
-
+        log.info("ClientConfig success");
         return new LettuceConnectionFactory(redisStandaloneConfiguration, clientConfiguration);
     }
 
@@ -74,6 +75,7 @@ public class RedisTemplateConfig {
         redisTemplate.setHashValueSerializer(valueSerializer);
 
         redisTemplate.afterPropertiesSet();
+        log.info("template set properly");
         return redisTemplate;
     }
 }
