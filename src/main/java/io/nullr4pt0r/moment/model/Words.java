@@ -19,5 +19,6 @@ public class Words {
     private String language;
     private List<String> meanings;
     private String phonetics;
+    private String englishTranslation;
     private List<String> remarks;
 }
