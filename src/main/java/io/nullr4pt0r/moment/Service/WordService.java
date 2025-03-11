@@ -29,7 +29,7 @@ public class WordService {
             resultWord = strategy.fetchWord(userSessionId, language);
         }
         log.info("Fetched word : "+resultWord.getId());
-        return new WordResponse(resultWord.getWord(), resultWord.getLanguage(), resultWord.getMeanings(), resultWord.getPhonetics(), resultWord.getRemarks());
+        return new WordResponse(resultWord.getWord(), resultWord.getLanguage(), resultWord.getMeanings(), resultWord.getPhonetics(), resultWord.getEnglishTranslation(), resultWord.getRemarks());
     }
 
 }
