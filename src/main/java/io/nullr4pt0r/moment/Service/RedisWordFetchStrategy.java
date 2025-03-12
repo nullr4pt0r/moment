@@ -19,7 +19,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 
 public class RedisWordFetchStrategy implements WordFetchStrategy {
-    private static final int CACHE_SIZE = 3;
+    private static final int CACHE_SIZE = 50;
     private static final long CACHE_TTL_HOURS = 1;
 
     private static final String UPDATE_SCRIPT =
